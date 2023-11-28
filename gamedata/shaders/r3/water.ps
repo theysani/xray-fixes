@@ -65,10 +65,27 @@ float4 main( vf I ) : SV_Target
 			n0.xy	= n0.xy + (0.5h / 255.0h); // new
 			n1.xy	= n1.xy + (0.5h / 255.0h); // new
 	float3	Navg	= n0 + n1 - 1;
+			
+#ifdef USE_SOFT_WATER
+#ifdef NEED_SOFT_WATER
+	float2 PosTc = I.tctexgen.xy / I.tctexgen.z;
+#ifdef GBUFFER_OPTIMIZATION
+	gbuffer_data gbd = gbuffer_load_data( PosTc, pos2d );
+#else
+	gbuffer_data gbd = gbuffer_load_data( PosTc );
+#endif
+	float4 _P = 	float4( gbd.P, gbd.mtl );
+
+	float3 splashes = GetNVNMap(s_ripples, I.tbase, timers.x); // new
+
+	//	Apply distance falloff
+	float	fAtten = 1 - smoothstep(5.f, 20.f, length(_P.xyz));
+	splashes *= fAtten*fAtten;	
 	
-	float3 waterSplash = GetNVNMap(s_ripples, I.tbase, timers.x); // new
-		
-			Navg += waterSplash; // new
+	Navg += splashes * (gbd.hemi * gbd.hemi);
+
+#endif //	USE_SOFT_WATER
+#endif //	NEED_SOFT_WATER			
 
 	float3	Nw	= mul (float3x3(I.M1, I.M2, I.M3), Navg);
 			Nw	= normalize (Nw);
@@ -115,14 +132,6 @@ float4 main( vf I ) : SV_Target
 
 #ifdef	USE_SOFT_WATER
 	//	Igor: additional depth test
-//	float4 _P = 	tex2Dproj( s_position, I.tctexgen);
-	float2 PosTc = I.tctexgen.xy/I.tctexgen.z;
-#ifdef GBUFFER_OPTIMIZATION
-	gbuffer_data gbd = gbuffer_load_data( PosTc, pos2d );
-#else
-	gbuffer_data gbd = gbuffer_load_data( PosTc );
-#endif
-	float4 _P = 	float4( gbd.P, gbd.mtl );
 	float waterDepth = _P.z-I.tctexgen.z;
 
 	//	water fog
