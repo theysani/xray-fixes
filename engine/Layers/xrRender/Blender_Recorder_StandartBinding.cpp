@@ -294,6 +294,17 @@ class cl_hemi_color	: public R_constant_setup {
 		RCache.set_c	(C,result);
 	}
 };	static cl_hemi_color		binder_hemi_color;
+class cl_weather_params : public R_constant_setup {
+	u32			marker;
+	Fvector4	result;
+	virtual void setup(R_constant* C) {
+		if (marker != Device.dwFrame) {
+			CEnvDescriptor& desc = *g_pGamePersistent->Environment().CurrentEnv;
+			result.set(desc.rain_density, 0, 0, 0);
+		}
+		RCache.set_c(C, result);
+	}
+};	static cl_weather_params		binder_weather_params;
 #endif
 
 static class cl_screen_res : public R_constant_setup		
@@ -357,6 +368,8 @@ void	CBlender_Compile::SetMapping	()
 //	r_Constant				("L_lmap_color",	&binder_lm_color);
 	r_Constant				("L_hemi_color",	&binder_hemi_color);
 	r_Constant				("L_ambient",		&binder_amb_color);
+
+	r_Constant				("weather_params",  &binder_weather_params);
 #endif
 	r_Constant				("screen_res",		&binder_screen_res);
 
