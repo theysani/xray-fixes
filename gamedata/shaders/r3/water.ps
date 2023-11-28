@@ -46,7 +46,7 @@ float3 GetNVNMap(Texture3D s_texture, float2 tc, float time)
     //	Renormalize (*2) and scale (*3)
     water.xyz *= 6;
 
-    water.y = 0.1;
+    water.y = 0;
 
     return water.xyz;
 }
