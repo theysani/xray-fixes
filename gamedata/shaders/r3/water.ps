@@ -29,7 +29,7 @@ Texture3D	s_ripples; // new
 
 #if defined(USE_SOFT_WATER) && defined(NEED_SOFT_WATER)
 float3	water_intensity;
-float	weather_params;
+float4	weather_params;
 #endif	//	defined(USE_SOFT_WATER) && defined(NEED_SOFT_WATER)
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -77,13 +77,15 @@ float4 main( vf I ) : SV_Target
 #endif
 	float4 _P = 	float4( gbd.P, gbd.mtl );
 
-	float3 splashes = GetNVNMap(s_ripples, I.tbase, timers.x); // new
+	float3 splashes = GetNVNMap(s_ripples, I.tbase, timers.x*3.0); // new
 
 	//	Apply distance falloff
 	float	fAtten = 1 - smoothstep(5.f, 20.f, length(_P.xyz));
 	splashes *= fAtten*fAtten;	
 	
-	Navg += (splashes * (gbd.hemi * gbd.hemi)) * weather_params;
+	//Navg += (splashes * (gbd.hemi * gbd.hemi)) * weather_params.x;
+	
+	Navg += (splashes * (gbd.hemi * gbd.hemi));
 
 #endif //	USE_SOFT_WATER
 #endif //	NEED_SOFT_WATER			
