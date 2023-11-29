@@ -38,9 +38,8 @@ float4 main( v2p I ) : SV_Target
 	result.rgb *= Contrast( saturate(spaceDepth*1.3h), 2);
 #endif	//	USE_SOFT_PARTICLES
 
-	result.a *= I.fog*I.fog;
-
 	clip(result.a - (0.01f / 255.0f));
-
+    result.w *= I.fog;
+    result.xyz *= I.fog;
 	return result;
 }

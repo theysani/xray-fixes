@@ -4,7 +4,7 @@ struct 	v2p
 {
  	float2	tc0	: 	TEXCOORD0;	// base
 	float4	c	:	COLOR0;		// diffuse
-	float	fog	: FOG;	
+	float	fog	:	FOG; // fog
 };
 
 
@@ -12,8 +12,7 @@ struct 	v2p
 // Pixel
 float4 main (v2p I) : SV_Target
 {
-	float4 res = I.c.a * s_base.Sample( smp_base, I.tc0 ).a;
-	res.a *= I.fog*I.fog;
-
-	return	res;
+	float result = I.c.a * s_base.Sample( smp_base, I.tc0 );
+	result *= I.fog*I.fog;
+	return	result;
 }
