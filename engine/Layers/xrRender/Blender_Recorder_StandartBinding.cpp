@@ -300,7 +300,8 @@ class cl_weather_params : public R_constant_setup {
 	virtual void setup(R_constant* C) {
 		if (marker != Device.dwFrame) {
 			CEnvDescriptor& desc = *g_pGamePersistent->Environment().CurrentEnv;
-			result.set(desc.rain_density, 0, 0, 0);
+			CEnvDescriptorMixer& descMixer = *g_pGamePersistent->Environment().CurrentEnv;
+			result.set(desc.rain_density, descMixer.weight, 0, 0);
 		}
 		RCache.set_c(C, result);
 	}
