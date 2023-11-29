@@ -192,6 +192,8 @@ void CBlender_Model_EbB::Compile( CBlender_Compile& C )
 			//C.r_Sampler			("s_env",	oT2_Name,false,D3DTADDRESS_CLAMP);
 			C.r_dx10Texture		("s_base",	C.L_textures[0]);
 			C.r_dx10Texture		("s_env",	oT2_Name);
+			C.r_dx10Texture		("s_env0",	r2_T_sky0);
+			C.r_dx10Texture		("s_env1",	r2_T_sky1);
 
 			C.r_dx10Sampler			("smp_base");
 			C.r_dx10Sampler			("smp_rtlinear");
