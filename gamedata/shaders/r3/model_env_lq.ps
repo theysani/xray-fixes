@@ -8,6 +8,8 @@ struct 	v2p
 	float  fog	: FOG;
 };
 
+float4 weather_params;
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Pixel
 //uniform samplerCUBE 	s_env	;
@@ -26,7 +28,7 @@ float4 	main	( v2p I )	: SV_Target
 	float3	t_env0 	= s_env0.Sample( smp_rtlinear, I.tc1);
 	float3	t_env1 	= s_env1.Sample( smp_rtlinear, I.tc1);
 
-	float3	f_env	= lerp(t_env0, t_env1, L_sky_color.w);	
+	float3	f_env	= lerp(t_env0, t_env1, weather_params.y);	
 
 	float3 	base 	= lerp		(f_env,t_base,t_base.a);
 	float3	light	= I.c0;
