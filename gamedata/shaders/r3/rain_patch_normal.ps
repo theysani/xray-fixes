@@ -8,38 +8,40 @@ float3x4 m_sunmask;	// ortho-projection
 Texture3D	s_water;
 Texture2D	s_waterFall;
 float4	RainDensity;	//	float
-float4	RainFallof;		//	float2
+float4  RainFallof;
 float4	WorldX;	//	Float3	
 float4	WorldZ;	//	Float3	
 
 
-float3 GetNVNMap(Texture3D s_texture, float2 tc, float time)
+float3	GetNVNMap( Texture3D s_texture, float2 tc, float time)
 {
-    //	Unpack NVidia normal map
-    float4 water = s_texture.SampleBias(smp_base, float3(tc, time), -3.) - 0.5;
+	//	Unpack NVidia normal map
+	float4 water = s_texture.SampleBias( smp_base, float3(tc, time), -3.) - 0.5;
 
-    //	Swizzle
-    water.xyz = water.wyz;
+	//	Swizzle
+	water.xyz = water.wyz;
 
-    //	Renormalize (*2) and scale (*3)
-    water.xyz *= 6;
+	//	Renormalize (*2) and scale (*3)
+	water.xyz *= 6;
 
-    water.y = 0.1;
+	water.y = 0;
 
-    return water.xyz;
+	return water.xyz;
 }
 
-float3 GetWaterNMap(Texture2D s_texture, float2 tc)
+
+float3	GetWaterNMap( Texture2D s_texture, float2 tc)
 {
-    //	Unpack normal map
-    float4 water = s_texture.Sample(smp_base, tc);
-    water.xyz = (water.xzy - 0.5) * 2;
+	//	Unpack normal map
+//	float4 water = s_texture.SampleLevel( smp_base, float3(tc, time), 0 );
+	float4 water = s_texture.Sample( smp_base, tc);
+	water.xyz = (water.xzy-0.5)*2;
 
-    water.xyz *= 0.4;
+	water.xyz *= 0.3;
 
-    water.y = 0.1;
+	water.y = 0;
 
-    return water.xyz;
+	return water.xyz;
 }
 
 
@@ -48,33 +50,10 @@ float3 GetWaterNMap(Texture2D s_texture, float2 tc)
 #endif
 
 
-#ifdef GBUFFER_OPTIMIZATION
-#ifdef MSAA_OPTIMIZATION
 float4 main ( float2 tc : TEXCOORD0, float2 tcJ : TEXCOORD1, float4	Color	: COLOR, float4 pos2d : SV_Position, uint iSample : SV_SAMPLEINDEX  ) : SV_Target
-#else
-float4 main ( float2 tc : TEXCOORD0, float2 tcJ : TEXCOORD1, float4	Color	: COLOR, float4 pos2d : SV_Position ) : SV_Target
-#endif
-#else
-#ifdef MSAA_OPTIMIZATION
-float4 main ( float2 tc : TEXCOORD0, float2 tcJ : TEXCOORD1, uint iSample : SV_SAMPLEINDEX ) : SV_Target
-#else
-float4 main ( float2 tc : TEXCOORD0, float2 tcJ : TEXCOORD1 ) : SV_Target
-#endif
-#endif
 {
-#ifdef GBUFFER_OPTIMIZATION
-#ifdef MSAA_OPTIMIZATION
 	gbuffer_data gbd = gbuffer_load_data( tc, pos2d, iSample );
-#else
-	gbuffer_data gbd = gbuffer_load_data( tc, pos2d, ISAMPLE );
-#endif
-#else
-#ifdef MSAA_OPTIMIZATION
-	gbuffer_data gbd = gbuffer_load_data( tc, iSample );
-#else
-	gbuffer_data gbd = gbuffer_load_data( tc, ISAMPLE );
-#endif
-#endif
+
 	float4 _P = float4( gbd.P, 1.0 );
 	float3 _N = gbd.N;
 	float3	D = gbd.C;		// rgb	//.gloss
@@ -88,10 +67,10 @@ float4 main ( float2 tc : TEXCOORD0, float2 tcJ : TEXCOORD1 ) : SV_Target
 
 	// Read rain projection with some jetter. Also adding pixel normal 
 	// factor to jitter to make rain strips more realistic.
-	float s	= shadow_rain( PS, WorldP.xz + WorldN.xz * 0.02);
-
+	float s		= shadow_rain( PS, WorldP.xz*1.1 - WorldN.xz*0.035 );	
+	
 	//	Apply distance falloff
-	float	fAtten = 1 - smoothstep( RainFallof.x, RainFallof.y,  _P.xyz );
+	float	fAtten = 1 - smoothstep(RainFallof.x, RainFallof.y, _P.z );
 	s	*= fAtten*fAtten;
 
 	//	Apply rain density
@@ -101,39 +80,38 @@ float4 main ( float2 tc : TEXCOORD0, float2 tcJ : TEXCOORD1 ) : SV_Target
 	s *= saturate(fIsUp*10+(10*0.5)+0.5);
 	fIsUp = max(0, fIsUp);
 
-    float3 waterSplash = GetNVNMap(s_water, WorldP.xz, timers.x); // timers.x*3.0 );
+	float fIsX = WorldN.x;
+	float fIsZ = WorldN.z;
 
-    float WeaponAttenuation = smoothstep(0.8, 0.9, length(_P.xyz));
-    float ApplyNormalCoeff = s * WeaponAttenuation;
+	float3 waterSplash = GetNVNMap( s_water, WorldP.xz, timers.x );
 
-    float3 water = waterSplash * (fIsUp * ApplyNormalCoeff);
+	float3 tc1 = WorldP / 2;
 
-    float fAngleFactor = 1 - fIsUp;
+	float fAngleFactor = 1 - fIsUp;
 
-    fAngleFactor = 0.1 * ceil(10 * fAngleFactor);
+	fAngleFactor = 0.1*ceil(10*fAngleFactor);
 
-    // Just slow down effect.
-    fAngleFactor *= 0.30;
+	//	Just slow down effect.
+	fAngleFactor *= 0.5;
 
-    float fIsX = WorldN.x;
-    float fIsZ = WorldN.z;
+	float3 waterFallX = GetWaterNMap( s_waterFall, float2(tc1.z, tc1.y+timers.x*fAngleFactor) );
+	float3 waterFallZ = GetWaterNMap( s_waterFall, float2(tc1.x, tc1.y+timers.x*fAngleFactor) );
+	
+	float WeaponAttenuation = smoothstep( 0.8, 0.9, length( _P.xyz ));
+	float ApplyNormalCoeff = s * WeaponAttenuation;
 
-    float3 tc1 = WorldP / 2;
+	float3 water = waterSplash*(fIsUp*ApplyNormalCoeff);
 
-    float3 waterFallX = GetWaterNMap(s_waterFall, float2(tc1.z, tc1.y + timers.x * fAngleFactor));
-    float3 waterFallZ = GetWaterNMap(s_waterFall, float2(tc1.x, tc1.y + timers.x * fAngleFactor));
+	water += waterFallX.yxz*(abs(fIsX)*ApplyNormalCoeff);
+	water += waterFallZ.zxy*(abs(fIsZ)*ApplyNormalCoeff);
 
-    water += waterFallX.yxz * (abs(fIsX) * ApplyNormalCoeff);
-    water += waterFallZ.zxy * (abs(fIsZ) * ApplyNormalCoeff);
+	//	Translate NM to view space
+	water.xyz = mul( m_V, water.xyz );
+	_N += water.xyz;
 
-    //	Translate NM to view space
-    water.xyz = mul(m_V, water.xyz);
+	_N = normalize(_N);
 
-    _N += water.xyz;
+	s *= dot(D.xyz, float3(0.33, 0.33, 0.33));
 
-    _N = normalize(_N);
-
-    s *= dot(D.xyz, float3(0.33, 0.33, 0.33));
-
-    return float4(_N, s);
+	return float4(_N,s);
 }
