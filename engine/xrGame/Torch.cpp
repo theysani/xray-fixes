@@ -35,6 +35,7 @@ CTorch::CTorch(void)
 	light_render->set_shadow	(true);
 	light_omni					= ::Render->light_create();
 	light_omni->set_type		(IRender_Light::POINT);
+	light_omni->set_hud_mode	(true);
 	light_omni->set_shadow		(false);
 
 	m_switched_on				= false;
@@ -187,8 +188,9 @@ void CTorch::Switch	(bool light_on)
 	{
 		light_render->set_active(light_on);
 		
-		CActor *pA = smart_cast<CActor *>(H_Parent());
-		if(!pA)light_omni->set_active(light_on);
+		//CActor *pA = smart_cast<CActor *>(H_Parent());
+		//if(!pA)
+			light_omni->set_active(light_on);
 	}
 	glow_render->set_active					(light_on);
 
@@ -325,7 +327,7 @@ void CTorch::UpdateCL()
 				offset.mad					(M.k,TORCH_OFFSET.z);
 				light_render->set_position	(offset);
 
-				if(false)
+				if(true)
 				{
 					offset						= M.c; 
 					offset.mad					(M.i,OMNI_OFFSET.x);
@@ -340,7 +342,7 @@ void CTorch::UpdateCL()
 			{
 				light_render->set_rotation	(dir, right);
 				
-				if(false)
+				if(true)
 				{
 					light_omni->set_rotation	(dir, right);
 				}
