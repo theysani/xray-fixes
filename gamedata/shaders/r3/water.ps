@@ -80,7 +80,7 @@ float4 main( vf I ) : SV_Target
 	float3 splashes = GetNVNMap(s_ripples, I.tbase, timers.x*3.0); // new
 
 	//	Apply distance falloff
-	float	fAtten = 1 - smoothstep(5.f, 20.f, length(_P.xyz));
+	float	fAtten = 1 - smoothstep(5.f, 20.f, length(_P.z));
 	splashes *= fAtten*fAtten;	
 	
 	//Navg += (splashes * (gbd.hemi * gbd.hemi)) * weather_params.x;
