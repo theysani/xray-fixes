@@ -5,8 +5,8 @@ struct vf
 {
 	float2 tc0	: TEXCOORD0;		// base
 	float4 c0	: COLOR0;		// color
-	float  fog	: FOG;
 	float4 hpos	: SV_Position;
+	float  fog	: FOG;	
 };
 
 vf 	_main (v_model v)
