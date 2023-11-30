@@ -91,12 +91,14 @@ float4 main ( float2 tc : TEXCOORD0, float2 tcJ : TEXCOORD1 ) : SV_Target
 
 	// Read rain projection with some jetter. Also adding pixel normal 
 	// factor to jitter to make rain strips more realistic.
-	//float s		= shadow_rain( PS, WorldP.xz*1.1 - WorldN.xz*0.035 );
-	// попробуем так, возможно исправит положение
-	float s		= shadow_rain( PS, WorldP.xz - WorldN.xz );
 	
+	//оригинал
+	//float s		= shadow_rain( PS, WorldP.xz*2 );
+	
+	float s		= shadow_rain(PS, WorldP.xz - WorldN.xz);
+
 	//	Apply distance falloff
-	float	fAtten = 1 - smoothstep(RainFallof.x, RainFallof.y, _P.z );
+	float	fAtten = 1 - smoothstep(RainFallof.x, RainFallof.y, length(_P.z));
 	s	*= fAtten*fAtten;
 
 	//	Apply rain density
