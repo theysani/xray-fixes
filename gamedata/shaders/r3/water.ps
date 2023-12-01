@@ -83,9 +83,7 @@ float4 main( vf I ) : SV_Target
 	float	fAtten = 1 - smoothstep(5.f, 20.f, length(_P.z));
 	splashes *= fAtten*fAtten;	
 	
-	//Navg += (splashes * (gbd.hemi * gbd.hemi)) * weather_params.x;
-	
-	Navg += (splashes * (gbd.hemi * gbd.hemi));
+	Navg += (splashes * (gbd.hemi * gbd.hemi)) * weather_params.x;
 
 #endif //	USE_SOFT_WATER
 #endif //	NEED_SOFT_WATER			
