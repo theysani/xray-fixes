@@ -316,6 +316,34 @@ static class cl_screen_res : public R_constant_setup
 	}
 }	binder_screen_res;
 
+static class cl_projection_params : public R_constant_setup {
+	virtual void setup(R_constant* C)
+	{
+		CEnvDescriptor& desc = *g_pGamePersistent->Environment().CurrentEnv;
+		float nearPlane = VIEWPORT_NEAR;
+		float farPlane = desc.far_plane;
+
+		Fvector4 viewportParams = { 1.0f, nearPlane, farPlane, 1.0f/farPlane };
+
+		RCache.set_c(C, viewportParams);
+	}
+}
+binder_projection_params;
+
+static class cl_sky_rotation_params : public R_constant_setup
+{
+	virtual void setup(R_constant* C)
+	{
+		CEnvDescriptor& desc = *g_pGamePersistent->Environment().CurrentEnv;
+		float skyRotation = desc.sky_rotation;
+
+		Fvector4 skyParams = { skyRotation, 0.0f, 0.0f, 0.0f };
+
+		RCache.set_c(C, skyParams);
+	}
+}
+binder_sky_rotation_params;
+
 
 // Standart constant-binding
 void	CBlender_Compile::SetMapping	()
@@ -371,6 +399,9 @@ void	CBlender_Compile::SetMapping	()
 	r_Constant				("L_ambient",		&binder_amb_color);
 
 	r_Constant				("weather_params",  &binder_weather_params);
+
+	r_Constant("projection_params", &binder_projection_params);
+	r_Constant("sky_rotation", &binder_sky_rotation_params);
 #endif
 	r_Constant				("screen_res",		&binder_screen_res);
 
